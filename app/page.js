@@ -1,3 +1,4 @@
+'use client';
 import React, { useState, useEffect } from 'react';
 import { MessageCircle, ArrowLeft, RefreshCw } from 'lucide-react';
 
@@ -12,7 +13,6 @@ export default function ChatBot() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // REPLACE THIS URL WITH YOUR GOOGLE SHEETS CSV EXPORT URL
   const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1MwjXNH6sx8sFsccv3krgpC5BhKfZ9GxnMLS590FZik4/export?format=csv&gid=0';
 
   useEffect(() => {
