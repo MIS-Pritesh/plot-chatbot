@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { MessageCircle, ArrowLeft, RefreshCw } from 'lucide-react';
+import { MessageCircle, ArrowLeft } from 'lucide-react';
 
 export default function ChatBot() {
   const [chatHistory, setChatHistory] = useState([
@@ -11,83 +11,34 @@ export default function ChatBot() {
   const [subMenus, setSubMenus] = useState({});
   const [qaData, setQaData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1MwjXNH6sx8sFsccv3krgpC5BhKfZ9GxnMLS590FZik4/export?format=csv&gid=0';
+  const csvData = [
+    { subject: "Legal & Financing Questions", question: "What is the total all-inclusive cost for a plot, including stamp duty and registration?", answer: "Please contact our sales team for detailed pricing information including stamp duty and registration charges." },
+    { subject: "Legal & Financing Questions", question: "Is the land clear of all encumbrances and litigation?", answer: "Yes, all our plots are free from encumbrances and litigation. We provide clear title documents." },
+    { subject: "Legal & Financing Questions", question: "Can I see a copy of the Approved Layout Plan?", answer: "Yes, the approved layout plan is available for review at our sales office." },
+    { subject: "Legal & Financing Questions", question: "What documents will I receive immediately upon booking?", answer: "Upon booking, you will receive: Allotment Letter, Payment Receipt, and Booking Agreement." },
+    { subject: "Legal & Financing Questions", question: "What are the permissible FSI (Floor Space Index) for these plots?", answer: "The FSI varies by plot size and location. Please consult with our team for specific FSI details for your chosen plot." },
+    { subject: "Legal & Financing Questions", question: "What is the penalty for delayed payment installments?", answer: "Delayed payments attract a penalty of 18% per annum. Please refer to your agreement for complete terms." },
+    { subject: "General Project & Amenities", question: "Is there provision for underground electrical wiring and drainage?", answer: "Yes, the project features underground electrical wiring and a modern drainage system." },
+    { subject: "General Project & Amenities", question: "What is the source of water supply for the project?", answer: "Water supply is provided through borewell and municipal water connection with overhead tanks." },
+    { subject: "General Project & Amenities", question: "What is the width of the internal roads in the layout?", answer: "Internal roads range from 30 feet to 40 feet in width, ensuring easy vehicle movement." },
+    { subject: "General Project & Amenities", question: "Is there 24/7 security or CCTV surveillance?", answer: "Yes, the project has 24/7 security personnel and CCTV surveillance at all entry/exit points." },
+    { subject: "General Project & Amenities", question: "Are there any common amenities like a park or clubhouse?", answer: "Yes, the layout includes a children's park, landscaped gardens, and a community hall." },
+    { subject: "General Project & Amenities", question: "What are the annual maintenance charges?", answer: "Annual maintenance charges are approximately ₹2-3 per sq.ft. Details will be provided in your agreement." },
+    { subject: "General Project & Amenities", question: "Are the plots Vastu-compliant?", answer: "Yes, all plots are designed with Vastu principles in mind, with proper orientation and directions." },
+    { subject: "General Project & Amenities", question: "What is the proximity to the nearest school or hospital?", answer: "The nearest school is 2 km away and hospital is 3 km away. Multiple educational and healthcare facilities are nearby." },
+    { subject: "General Project & Amenities", question: "When will the infrastructure (roads, water, electricity) be fully completed?", answer: "All basic infrastructure will be completed within 6 months from the project launch date." }
+  ];
 
   useEffect(() => {
-    loadDataFromGoogleSheets();
+    loadData();
   }, []);
 
-  const loadDataFromGoogleSheets = async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const response = await fetch(GOOGLE_SHEET_URL);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch data from Google Sheets');
-      }
-      
-      const csvText = await response.text();
-      const lines = csvText.split('\n');
-      const headers = lines[0].split(',').map(h => h.trim());
-      
-      const parsedData = [];
-      for (let i = 1; i < lines.length; i++) {
-        if (lines[i].trim() === '') continue;
-        
-        const values = parseCSVLine(lines[i]);
-        if (values.length >= 3) {
-          parsedData.push({
-            subject: values[0].trim(),
-            question: values[1].trim(),
-            answer: values[2].trim()
-          });
-        }
-      }
-
-      if (parsedData.length === 0) {
-        throw new Error('No data found in Google Sheets');
-      }
-
-      processData(parsedData);
-      
-    } catch (err) {
-      console.error('Error loading data:', err);
-      setError('Failed to load data from Google Sheets. Please check the URL and sheet permissions.');
-      setLoading(false);
-    }
-  };
-
-  const parseCSVLine = (line) => {
-    const result = [];
-    let current = '';
-    let inQuotes = false;
-    
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-      
-      if (char === '"') {
-        inQuotes = !inQuotes;
-      } else if (char === ',' && !inQuotes) {
-        result.push(current);
-        current = '';
-      } else {
-        current += char;
-      }
-    }
-    result.push(current);
-    
-    return result.map(item => item.replace(/^"|"$/g, ''));
-  };
-
-  const processData = (data) => {
+  const loadData = () => {
     const mainMenuData = {};
     const subMenusData = {};
     
-    const grouped = data.reduce((acc, row) => {
+    const grouped = csvData.reduce((acc, row) => {
       if (!acc[row.subject]) acc[row.subject] = [];
       acc[row.subject].push(row);
       return acc;
@@ -106,7 +57,7 @@ export default function ChatBot() {
 
     setMainMenu(mainMenuData);
     setSubMenus(subMenusData);
-    setQaData(data);
+    setQaData(csvData);
     setLoading(false);
   };
 
@@ -127,14 +78,6 @@ export default function ChatBot() {
       ]);
       setCurrentMenuKey('MAIN');
     }
-  };
-
-  const handleRefresh = () => {
-    setChatHistory([
-      { role: 'assistant', content: 'Hello! I am PlotBot, your Q&A assistant. Please select a category below to get started.' }
-    ]);
-    setCurrentMenuKey('MAIN');
-    loadDataFromGoogleSheets();
   };
 
   const MenuButtons = ({ menu }) => {
@@ -160,27 +103,7 @@ export default function ChatBot() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-green-400 text-xl flex items-center gap-3">
-          <RefreshCw className="animate-spin" size={24} />
-          Loading data from Google Sheets...
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-        <div className="bg-red-900 border-l-4 border-red-500 text-red-100 p-6 rounded-lg max-w-2xl">
-          <h3 className="text-xl font-bold mb-2">Error Loading Data</h3>
-          <p className="mb-4">{error}</p>
-          <button 
-            onClick={handleRefresh}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
+        <div className="text-green-400 text-xl">Loading...</div>
       </div>
     );
   }
@@ -188,19 +111,9 @@ export default function ChatBot() {
   return (
     <div className="min-h-screen bg-gray-900 text-gray-200">
       <div className="max-w-5xl mx-auto p-4">
-        <div className="flex items-center justify-between mb-6 py-4">
-          <div className="flex items-center gap-3">
-            <MessageCircle className="text-green-500" size={32} />
-            <h1 className="text-3xl font-bold text-white">Plot Q&A Bot 🏡</h1>
-          </div>
-          <button
-            onClick={handleRefresh}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-            title="Refresh data from Google Sheets"
-          >
-            <RefreshCw size={18} />
-            Refresh
-          </button>
+        <div className="flex items-center gap-3 mb-6 py-4">
+          <MessageCircle className="text-green-500" size={32} />
+          <h1 className="text-3xl font-bold text-white">Plot Q&A Bot 🏡</h1>
         </div>
 
         <div className="bg-gray-800 rounded-lg p-6 mb-6 min-h-[400px] max-h-[500px] overflow-y-auto">
@@ -239,10 +152,6 @@ export default function ChatBot() {
               <MenuButtons menu={subMenus[currentMenuKey] || {}} />
             </>
           )}
-        </div>
-
-        <div className="mt-4 text-center text-gray-500 text-sm">
-          <p>💡 Data is loaded from Google Sheets. Click refresh to get latest updates.</p>
         </div>
       </div>
     </div>
